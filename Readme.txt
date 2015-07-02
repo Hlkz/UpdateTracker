@@ -24,19 +24,6 @@ What Do You Need?
 
 Which Database System Should You Use?
 --------------------------------------------------------------------------------------
-* SQLite3
-  * Pros:
-    * Comes integrated with PHP 5.3.
-    * Fantastic speed when using simple queries.
-    * Single database file, no network connection overhead.
-  * Cons:
-    * Not designed for heavily loaded multi-user environments. I have not yet 
-      tested this database system in a Real World Environment that experiences 
-      several thousand Requests/s, but it should work fine for the typical tracker.
-  * Summary:
-    * Use this if you have a relatively small to medium sized tracker, and/or 
-      don't have access to any of the other more robust database servers.
-
 * MySQL (Recommended), at least 4.1+, suggest 5.1+
   * Pros:
     * Performance is great all around.
@@ -47,11 +34,6 @@ Which Database System Should You Use?
   * Summary:
     * Use this database system if available. It's the most widely support database
       in shared hosting environments and any decent host offers them.
-
-* PostgreSQL (Coming Soon)
-  * Pros: TODO
-  * Cons: TODO
-  * Summary: TODO
 
 
 Quick Install Guide
