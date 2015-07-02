@@ -23,6 +23,8 @@
 
 // Configuration ///////////////////////////////////////////////////////////////////////////////////
 
+require '../config.php';
+
 // tracker state
 $_SERVER['tracker'] = array(
 	// general tracker options
@@ -41,10 +43,10 @@ $_SERVER['tracker'] = array(
 	                                      /* if you have a busy tracker, you may adjust this */
 	                                      /* example: 10 = 10%, 20 = 5%, 50 = 2%, 100 = 1% */
 	// database options
-	'db_host'           => 'localhost',   /* ip or hostname to mysql server */
-	'db_user'           => 'root',        /* username used to connect to mysql */
-	'db_pass'           => '',            /* password used to connect to mysql */
-	'db_name'           => 'peertracker', /* name of the PeerTracker database */
+	'db_host'           => $dba_host,     /* ip or hostname to mysql server */
+	'db_user'           => $dba_user,     /* username used to connect to mysql */
+	'db_pass'           => $dba_pass,     /* password used to connect to mysql */
+	'db_name'           => $dba_name,     /* name of the PeerTracker database */
 
 	// advanced database options
 	'db_prefix'         => 'tracker_',    /* name prefixes for the PeerTracker tables */
