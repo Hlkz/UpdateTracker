@@ -47,7 +47,7 @@ $_SERVER['tracker'] = array(
 	'db_name'           => 'peertracker', /* name of the PeerTracker database */
 
 	// advanced database options
-	'db_prefix'         => 'pt_',         /* name prefixes for the PeerTracker tables */
+	'db_prefix'         => 'tracker_',    /* name prefixes for the PeerTracker tables */
 	'db_persist'        => false,         /* use persistent connections if available. */
 );
 
@@ -56,6 +56,10 @@ $_SERVER['tracker'] = array(
 // fatal error, stop execution
 function tracker_error($error) 
 {
+	$log = fopen("tracker.log", "w") or die("Unable to open log file");
+	fwrite($log, $error);
+	fclose($log);
+
 	exit('d14:failure reason' . strlen($error) . ":{$error}e");
 }
 
@@ -503,6 +507,11 @@ class peertracker
 			"SELECT COUNT(*) FROM `{$_SERVER['tracker']['db_prefix']}peers` WHERE info_hash='{$_GET['info_hash']}'"
 		) OR tracker_error('failed to select peer count');
 
+		// fetch file direct download url
+		$direct_download = self::$api->fetch_once(
+			"SELECT direct_download FROM `patches` WHERE info_hash='{$_GET['info_hash']}'"
+		) OR tracker_error('failed to select direct download');
+
 		// select
 		$sql = 'SELECT ' . 
 			// 6-byte compacted peer info
@@ -526,7 +535,9 @@ class peertracker
 			);
 			
 		// begin response
-		$response = 'd8:intervali' . $_SERVER['tracker']['announce_interval'] . 
+		$response = 'd6:directd3:url' . strlen($direct_download[0]) . ':' . $direct_download[0] .
+					'9:thresholdi10000000ee'.
+					'8:intervali' . $_SERVER['tracker']['announce_interval'] . 
 		            'e12:min intervali' . $_SERVER['tracker']['min_interval'] . 
 		            'e5:peers';
 
