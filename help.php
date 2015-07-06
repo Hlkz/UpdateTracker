@@ -187,158 +187,6 @@ HTML;
 	}
 }
 
-// SQLite3 /////////////////////////////////////////////////////////////////////////////////////////
-
-// SQLite3 Version Check
-function checkSQLite3()
-{
-	// Check SQLite3 Class
-	if (class_exists('SQLite3'))
-	{
-		// Version
-		$_GET['sqlite3_version'] = SQLite3::version();
-	
-echo <<<HTML
-<tr>
-<td class="content_key yes c">SQLite3</td>
-<td class="content_value yes c">{$_GET['sqlite3_version']['versionString']}</td>
-<td class="content_desc yes r">Your server supports SQLite3.</td>
-<td class="content_icon yes"><img src="help.php?load=img_check" class="icon" alt="Supported" /></td>
-</tr>
-
-HTML;
-	}
-	// No SQLite3
-	else
-	{
-echo <<<HTML
-<tr>
-<td class="content_key no c">SQLite3</td>
-<td class="content_value no c">N/A</td>
-<td class="content_desc no r">Your server does not support SQLite3.</td>
-<td class="content_icon no"><img src="help.php?load=img_cross" class="icon" alt="Not Supported"></td>
-</tr>
-
-HTML;
-	}
-}
-
-// SQLite3 Util
-function utilSQLite3()
-{
-	// Check
-	if (isset($_GET['sqlite3_version']))
-	{
-echo <<<HTML
-<tr>
-<td class="diag_item top l"><strong>SQLite3</strong></td>
-<td class="diag_desc top r"><strong>Description</strong></td>
-</tr>
-<tr>
-<td class="diag_item top l"><ul class="postnav"><li><a href="./help.php?do=setup_sqlite3">Setup SQLite3</a></li></ul></td>
-<td class="diag_desc top r">Install / Upgrade and Reset your SQLite3 Tracker Database.</td>
-</tr>
-<tr>
-<td class="diag_item top l"><ul class="postnav"><li><a href="./help.php?do=optimize_sqlite3">Optimize SQLite3</a></li></ul></td>
-<td class="diag_desc top r">Analyze and Defragment your SQLite3 Tracker Database.</td>
-</tr>
-
-HTML;
-	}
-}
-
-// SQLite3 Setup
-function setupSQLite3()
-{
-	// we need to locate tracker.sqlite3.php
-	// first, try the most obvious location.. which should be in the 
-	// same directory as the ./help.php file being ran
-	if (is_readable('./tracker.sqlite3.php'))
-	{
-		// require
-		require './tracker.sqlite3.php';
-	}
-	// unfortunately, it does not seem the file is located in the current
-	// directory, we will recurse the paths below and attempt to locate it
-	elseif (findFile(realpath('.'), 'tracker.sqlite3.php'))
-	{
-		// require
-		chdir(dirname($_GET['found_file_path']));
-		require './tracker.sqlite3.php';
-	}
-	// unable to find the file, might as well quit
-	else
-	{
-		$_GET['notice'] = 'no';
-		$_GET['message'] = '' . 
-			"Could not locate the <em>tracker.sqlite3.php</em> file. " .
-			"Make sure all of the necessary tracker files have been uploaded. ";
-		return;
-	}
-	
-	// file exists?
-	if (file_exists($_SERVER['tracker']['db_path']) && !unlink($_SERVER['tracker']['db_path']))
-	{
-		$_GET['notice'] = 'no';
-		$_GET['message'] = '' . 
-			"Could not setup the SQLite3 Database. Manually delete the database file " .
-			"and make sure to CHMOD the database directory 0777 so it can be re-created.";
-		return;
-	}
-	
-	// recreate db
-	peertracker::open();
-	peertracker::close();
-		
-	// no errors, hopefully???
-	$_GET['notice'] = 'yes';
-	$_GET['message'] = 'Your SQLite3 Tracker Database has been setup.';
-}
-
-// SQLite3 Optimizer
-function optimizeSQLite3()
-{
-	// we need to locate tracker.sqlite3.php
-	// first, try the most obvious location.. which should be in the 
-	// same directory as the ./help.php file being ran
-	if (is_readable('./tracker.sqlite3.php'))
-	{
-		// require
-		require './tracker.sqlite3.php';
-	}
-	// unfortunately, it does not seem the file is located in the current
-	// directory, we will recurse the paths below and attempt to locate it
-	elseif (findFile(realpath('.'), 'tracker.sqlite3.php'))
-	{
-		// require
-		chdir(dirname($_GET['found_file_path']));
-		require './tracker.sqlite3.php';
-	}
-	// unable to find the file, might as well quit
-	else
-	{
-		$_GET['notice'] = 'no';
-		$_GET['message'] = '' . 
-			"Could not locate the <em>tracker.sqlite3.php</em> file. " .
-			"Make sure all of the necessary tracker files have been uploaded. ";
-		return;
-	}
-	
-	// open db
-	peertracker::open();
-	if (peertracker::$db->exec('vacuum;'))
-	{
-		$_GET['notice'] = 'yes';
-		$_GET['message'] = 'Your SQLite3 Tsracker Database has been optimized.';
-	}
-	else
-	{
-		$_GET['notice'] = 'no';
-		$_GET['message'] = 'Could not optimize the SQLite3 Database.';
-	}
-	peertracker::close();
-}
-
 // MySQL ///////////////////////////////////////////////////////////////////////////////////////////
 
 // MySQL Version Check
@@ -528,39 +376,6 @@ function optimizeMySQL()
 	peertracker::close();
 }
 
-// PostgreSQL //////////////////////////////////////////////////////////////////////////////////////
-
-// PostgreSQL Version Check
-function checkPostgreSQL()
-{
-	// Check PostgreSQL
-	if (function_exists('pg_connect'))
-	{
-echo <<<HTML
-<tr>
-<td class="content_key yes c">PostgreSQL</td>
-<td class="content_value yes c">N/A</td>
-<td class="content_desc yes r">Your server supports PostgreSQL.</td>
-<td class="content_icon yes"><img src="help.php?load=img_check" class="icon" alt="Supported" /></td>
-</tr>
-
-HTML;
-	}
-	// No PostgreSQL
-	else
-	{
-echo <<<HTML
-<tr>
-<td class="content_key no c">PostgreSQL</td>
-<td class="content_value no c">N/A</td>
-<td class="content_desc no r">Your server does not support PostgreSQL.</td>
-<td class="content_icon no"><img src="help.php?load=img_cross" class="icon" alt="Not Supported" /></td>
-</tr>
-
-HTML;
-	}
-}
-
 // Display Information /////////////////////////////////////////////////////////////////////////////
 
 // Load Resources
@@ -574,11 +389,8 @@ if (isset($_GET['load']))
 // Handle Database Actions
 elseif (isset($_GET['do']))
 {
-	// SQLite3
-	if ($_GET['do'] == 'setup_sqlite3') setupSQLite3();
-	elseif ($_GET['do'] == 'optimize_sqlite3') optimizeSQLite3();
 	// MySQL
-	elseif ($_GET['do'] == 'setup_mysql') setupMySQL();
+	if ($_GET['do'] == 'setup_mysql') setupMySQL();
 	elseif ($_GET['do'] == 'optimize_mysql') optimizeMySQL();
 	// PostgreSQL
 }
@@ -650,9 +462,7 @@ checkPHP();
 </tr>
 <?php
 // Database Checks
-checkSQLite3();
 checkMySQL();
-checkPostgreSQL();
 ?>
 </table>
 </div>
@@ -662,7 +472,6 @@ checkPostgreSQL();
 <table class="content_table" cellpadding='0' cellspacing='0'>
 <?php 
 // Database Utilities
-utilSQLite3();
 utilMySQL();
 //utilPostgreSQL();
 ?>
