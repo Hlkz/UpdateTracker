@@ -23,6 +23,8 @@
 
 // Configuration ///////////////////////////////////////////////////////////////////////////////////
 
+require '../config.php';
+
 // tracker state
 $_SERVER['tracker'] = array(
 	// general tracker options
@@ -41,13 +43,13 @@ $_SERVER['tracker'] = array(
 	                                      /* if you have a busy tracker, you may adjust this */
 	                                      /* example: 10 = 10%, 20 = 5%, 50 = 2%, 100 = 1% */
 	// database options
-	'db_host'           => 'localhost',   /* ip or hostname to mysql server */
-	'db_user'           => 'root',        /* username used to connect to mysql */
-	'db_pass'           => '',            /* password used to connect to mysql */
-	'db_name'           => 'peertracker', /* name of the PeerTracker database */
+	'db_host'           => $dba_host,     /* ip or hostname to mysql server */
+	'db_user'           => $dba_user,     /* username used to connect to mysql */
+	'db_pass'           => $dba_pass,     /* password used to connect to mysql */
+	'db_name'           => $dba_name,     /* name of the PeerTracker database */
 
 	// advanced database options
-	'db_prefix'         => 'pt_',         /* name prefixes for the PeerTracker tables */
+	'db_prefix'         => 'tracker_',    /* name prefixes for the PeerTracker tables */
 	'db_persist'        => false,         /* use persistent connections if available. */
 );
 
@@ -56,6 +58,9 @@ $_SERVER['tracker'] = array(
 // fatal error, stop execution
 function tracker_error($error) 
 {
+	//$log = fopen("tracker.log", "w") or die("Unable to open log file");
+	//fwrite($log, $error);
+	//fclose($log);
 	exit('d14:failure reason' . strlen($error) . ":{$error}e");
 }
 
@@ -503,6 +508,11 @@ class peertracker
 			"SELECT COUNT(*) FROM `{$_SERVER['tracker']['db_prefix']}peers` WHERE info_hash='{$_GET['info_hash']}'"
 		) OR tracker_error('failed to select peer count');
 
+		// fetch file direct download url
+		$direct_download = self::$api->fetch_once(
+			"SELECT direct_download FROM `{$_SERVER['tracker']['db_prefix']}files` WHERE info_hash='{$_GET['info_hash']}'"
+		) OR tracker_error('download not allowed');
+
 		// select
 		$sql = 'SELECT ' . 
 			// 6-byte compacted peer info
@@ -526,7 +536,8 @@ class peertracker
 			);
 			
 		// begin response
-		$response = 'd8:intervali' . $_SERVER['tracker']['announce_interval'] . 
+		$response = strlen($direct_download[0]) ? 'd6:directd3:url' . strlen($direct_download[0]) . ':' . $direct_download[0] . '9:thresholdi10000000ee' : 'd';
+		$response .= '8:intervali' . $_SERVER['tracker']['announce_interval'] . 
 		            'e12:min intervali' . $_SERVER['tracker']['min_interval'] . 
 		            'e5:peers';
 

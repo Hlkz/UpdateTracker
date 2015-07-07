@@ -295,6 +295,14 @@ function setupMySQL()
 				"PRIMARY KEY (`info_hash`,`peer_id`)" .
 			") ENGINE=MyISAM DEFAULT CHARSET=latin1"
 		) && 
+		peertracker::$api->query("DROP TABLE IF EXISTS `{$_SERVER['tracker']['db_prefix']}files`") &&
+		peertracker::$api->query(
+			"CREATE TABLE IF NOT EXISTS `{$_SERVER['tracker']['db_prefix']}files` (" .
+				"`info_hash` binary(20) NOT NULL," .
+				"`direct_download` varchar(128) NOT NULL," .
+				"PRIMARY KEY (`info_hash`)" .
+			") ENGINE=MyISAM DEFAULT CHARSET=latin1"
+		) && 
 		peertracker::$api->query("DROP TABLE IF EXISTS `{$_SERVER['tracker']['db_prefix']}tasks`") &&
 		peertracker::$api->query(
 			"CREATE TABLE IF NOT EXISTS `{$_SERVER['tracker']['db_prefix']}tasks` (" . 
