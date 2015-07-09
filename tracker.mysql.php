@@ -58,9 +58,9 @@ $_SERVER['tracker'] = array(
 // fatal error, stop execution
 function tracker_error($error) 
 {
-	//$log = fopen("tracker.log", "w") or die("Unable to open log file");
-	//fwrite($log, $error);
-	//fclose($log);
+	$log = fopen("tracker.log", "a") or die("Unable to open log file");
+	fwrite($log, $error."\n");
+	fclose($log);
 	exit('d14:failure reason' . strlen($error) . ":{$error}e");
 }
 
@@ -180,7 +180,7 @@ class peertracker_mysql
 		$query = mysql_query($sql) OR tracker_error('unable to perform a full scrape');
 		
 		// 20-byte info_hash, integer complete, integer downloaded, integer incomplete
-		while ($scrape = mysql_fetch_row($query)) $response .= "20:{$scrape[0]}d8:completei{$scrape[1]}e10:downloadedi0e10:incompletei{$scrape[2]}ee";
+		while ($scrape = mysql_fetch_row($query)) $response .= "20:" . hex2bin($scrape[0]) . "d8:completei{$scrape[1]}e10:downloadedi0e10:incompletei{$scrape[2]}ee";
 
 		// cleanup
 		mysql_free_result($query);
@@ -297,7 +297,7 @@ class peertracker_mysqli
 		$query = $this->db->query($sql) OR tracker_error('unable to perform a full scrape');
 		
 		// 20-byte info_hash, integer complete, integer downloaded, integer incomplete
-		while ($scrape = $query->fetch_row()) $response .= "20:{$scrape[0]}d8:completei{$scrape[1]}e10:downloadedi0e10:incompletei{$scrape[2]}ee";
+		while ($scrape = $query->fetch_row()) $response .= "20:" . hex2bin($scrape[0]) . "8:completei{$scrape[1]}e10:downloadedi0e10:incompletei{$scrape[2]}ee";
 
 		// cleanup
 		$query->close();
@@ -406,7 +406,7 @@ class peertracker
 			// table columns
 			'(info_hash, peer_id, compact, ip, port, state, updated) ' .
 			// 20-byte info_hash, 20-byte peer_id
-			"VALUES ('{$_GET['info_hash']}', '{$_GET['peer_id']}', '" .
+			"VALUES ('{$_GET['info_hex']}', '{$_GET['peer_id']}', '" .
 			// 6-byte compacted peer info
 			self::$api->escape_sql(pack('Nn', ip2long($_GET['ip']), $_GET['port'])) . "', " .
 			// dotted decimal string ip, integer port, integer state and unix timestamp updated
@@ -428,7 +428,7 @@ class peertracker
 			// integer state and unix timestamp updated
 			"state={$_SERVER['tracker']['seeding']}, updated=" . time() .
 			// that matches the given info_hash and peer_id
-			" WHERE info_hash='{$_GET['info_hash']}' AND peer_id='{$_GET['peer_id']}'"
+			" WHERE info_hash='{$_GET['info_hex']}' AND peer_id='{$_GET['peer_id']}'"
 		) OR tracker_error('failed to update peer data');
 	}
 	
@@ -505,12 +505,12 @@ class peertracker
 		// fetch peer total
 		$total = self::$api->fetch_once(
 			// select a count of the number of peers that match the given info_hash
-			"SELECT COUNT(*) FROM `{$_SERVER['tracker']['db_prefix']}peers` WHERE info_hash='{$_GET['info_hash']}'"
+			"SELECT COUNT(*) FROM `{$_SERVER['tracker']['db_prefix']}peers` WHERE info_hash='{$_GET['info_hex']}'"
 		) OR tracker_error('failed to select peer count');
 
 		// fetch file direct download url
 		$direct_download = self::$api->fetch_once(
-			"SELECT direct_download FROM `{$_SERVER['tracker']['db_prefix']}files` WHERE info_hash='{$_GET['info_hash']}'"
+			"SELECT direct_download FROM `{$_SERVER['tracker']['db_prefix']}files` WHERE info_hash='{$_GET['info_hex']}'"
 		) OR tracker_error('download not allowed');
 
 		// select
@@ -523,7 +523,7 @@ class peertracker
 			'ip, port '
 			) .
 			// from peers table matching info_hash
-			"FROM `{$_SERVER['tracker']['db_prefix']}peers` WHERE info_hash='{$_GET['info_hash']}'" .
+			"FROM `{$_SERVER['tracker']['db_prefix']}peers` WHERE info_hash='{$_GET['info_hex']}'" .
 			// less peers than requested, so return them all
 			($total[0] <= $_GET['numwant'] ? ';' : 
 				// if the total peers count is low, use SQL RAND
@@ -534,7 +534,7 @@ class peertracker
 					mt_rand(0, ($total[0]-$_GET['numwant']))
 				)
 			);
-			
+
 		// begin response
 		$response = strlen($direct_download[0]) ? 'd6:directd3:url' . strlen($direct_download[0]) . ':' . $direct_download[0] . '9:thresholdi10000000ee' : 'd';
 		$response .= '8:intervali' . $_SERVER['tracker']['announce_interval'] . 
@@ -591,7 +591,7 @@ class peertracker
 				// from peers
 				"FROM `{$_SERVER['tracker']['db_prefix']}peers` " . 
 				// that match info_hash
-				"WHERE info_hash='" . self::$api->escape_sql($_GET['info_hash']) . "'"
+				"WHERE info_hash='{$_GET['info_hex']}'"
 			) OR tracker_error('unable to scrape the requested torrent');
 
 			// 20-byte info_hash, integer complete, integer downloaded, integer incomplete

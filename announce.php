@@ -93,7 +93,8 @@ else $_GET['numwant'] += 0;
 peertracker::open();
 
 // make info_hash & peer_id SQL friendly
-$_GET['info_hash'] = peertracker::$api->escape_sql($_GET['info_hash']);
+//$_GET['info_hash'] = peertracker::$api->escape_sql($_GET['info_hash']);
+$_GET['info_hex'] = strtoupper(bin2hex($_GET['info_hash']));
 $_GET['peer_id']   = peertracker::$api->escape_sql($_GET['peer_id']);
 
 // announce peers

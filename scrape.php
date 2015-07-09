@@ -64,6 +64,7 @@ if (!isset($_GET['info_hash']) || strlen($_GET['info_hash']) != 20)
 	// full scrape enabled
 	else unset($_GET['info_hash']);
 }
+else $_GET['info_hex'] = strtoupper(bin2hex($_GET['info_hash']));
 
 // Handle Request //////////////////////////////////////////////////////////////////////////////////
 
